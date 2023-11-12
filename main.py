@@ -846,36 +846,23 @@ def session_rollback(sess):
     ])
     exec(confirm_menu.menu_prompt())
 
-def add_letter_grade(session: Session):
-    """
-    Prompt the user for the information for a new LetterGrade category of Enrollment
-    and validate the input to make sure that we do not create any duplicates.
-    :param session: The connection to the database.
-    :return:        None
-    """
+def add_student_LetterGrade(sess):
+    student: Student
+    section: Section
+    unique_student_section: bool = False
+    while not unique_student_section:
+        student = select_student(sess)
+        section = select_section(sess)
+        pk_count: int = count_student_section(sess, student, section)
+        unique_student_section = pk_count == 0
+        if not unique_student_section:
+            print("That section already has that student enrolled in it.  Try again.")
 
-    print("Which section is this LetterGrade for?")
-    section: Section = select_section(session)
-    print("Which student is this LetterGrade for?")
-    student: Student = select_student(session)
-
-    unique_enrollment: bool = False
-    while not unique_enrollment:
-        application_date = input("Enter the application date for the LetterGrade (YYYY-MM-DD): ")
-        grade = input("Enter the student's letter grade (A, B, C, D, or F): ")
-
-        # Check if there is already an enrollment for this student and section
-        enrollment_count = session.query(Enrollment).filter(
-            Enrollment.section == section,
-            Enrollment.student == student
-        ).count()
-
-        unique_enrollment = enrollment_count == 0
-        if not unique_enrollment:
-            print("This student already has an enrollment for this section. Try again.")
-
-    new_enrollment = LetterGrade(section, student, datetime.strptime(application_date, "%Y-%m-%d"), grade)
-    session.add(new_enrollment)
+    #awaiting professors response on teams to see if we need to reinforce check constraint
+    student_grade = input("Please input this students grade: ")
+    letter_grade = LetterGrade(section, student, datetime.now(), student_grade)
+    sess.add(letter_grade)
+    sess.flush()
 
 
 if __name__ == '__main__':
