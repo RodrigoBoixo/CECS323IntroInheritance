@@ -17,6 +17,7 @@ from Section import Section
 from PassFail import PassFail
 from Option import Option
 from Menu import Menu
+from LetterGrade import LetterGrade
 import IPython
 
 
@@ -769,6 +770,27 @@ def select_student_from_list(session):
     # will present challenges in the exec call, so I didn't bother.
     print("Selected student: ", returned_student)
 
+def select_student(sess) -> Student:
+    """
+    Select a student by the combination of the last and first.
+    :param sess:    The connection to the database.
+    :return:        The selected student.
+    """
+    found: bool = False
+    last_name: str = ''
+    first_name: str = ''
+    while not found:
+        last_name = input("Student's last name--> ")
+        first_name = input("Student's first name--> ")
+        name_count: int = sess.query(Student).filter(Student.lastName == last_name,
+                                                     Student.firstName == first_name).count()
+        found = name_count == 1
+        if not found:
+            print("No student found by that name.  Try again.")
+    student: Student = sess.query(Student).filter(Student.lastName == last_name,
+                                                  Student.firstName == first_name).first()
+    return student
+
 
 def list_department_courses(sess):
     department = select_department(sess)
@@ -823,6 +845,37 @@ def session_rollback(sess):
         Option("No, I hit this option by mistake", "pass")
     ])
     exec(confirm_menu.menu_prompt())
+
+def add_letter_grade(session: Session):
+    """
+    Prompt the user for the information for a new LetterGrade category of Enrollment
+    and validate the input to make sure that we do not create any duplicates.
+    :param session: The connection to the database.
+    :return:        None
+    """
+
+    print("Which section is this LetterGrade for?")
+    section: Section = select_section(session)
+    print("Which student is this LetterGrade for?")
+    student: Student = select_student(session)
+
+    unique_enrollment: bool = False
+    while not unique_enrollment:
+        application_date = input("Enter the application date for the LetterGrade (YYYY-MM-DD): ")
+        grade = input("Enter the student's letter grade (A, B, C, D, or F): ")
+
+        # Check if there is already an enrollment for this student and section
+        enrollment_count = session.query(Enrollment).filter(
+            Enrollment.section == section,
+            Enrollment.student == student
+        ).count()
+
+        unique_enrollment = enrollment_count == 0
+        if not unique_enrollment:
+            print("This student already has an enrollment for this section. Try again.")
+
+    new_enrollment = LetterGrade(section, student, datetime.strptime(application_date, "%Y-%m-%d"), grade)
+    session.add(new_enrollment)
 
 
 if __name__ == '__main__':
