@@ -29,6 +29,7 @@ menu_main = Menu('main', 'Please select one of the following options:', [
 ])
 
 add_menu = Menu('add', 'Please indicate what you want to add:', [
+    Option("Student PassFail", "add_student_PassFail(sess)"),
     Option("Department", "add_department(sess)"),
     Option("Course", "add_course(sess)"),
     Option("Major", "add_major(sess)"),
