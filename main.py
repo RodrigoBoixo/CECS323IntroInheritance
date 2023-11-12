@@ -4,6 +4,7 @@ from menu_definitions import menu_main, add_menu, delete_menu, list_menu, semest
 from db_connection import engine, Session
 from orm_base import metadata
 from IntrospectionFactory import IntrospectionFactory
+from constants import *
 # Note that until you import your SQLAlchemy declarative classes, such as Student, Python
 # will not execute that code, and SQLAlchemy will be unaware of the mapped table.
 from Department import Department
